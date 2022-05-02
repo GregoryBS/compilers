@@ -1,5 +1,7 @@
 package analysis
 
+import "fmt"
+
 const (
 	eps       = "eps"
 	union     = '|'
@@ -26,6 +28,17 @@ type Graph struct {
 type FSM struct {
 	alphabet map[byte]bool
 	graph    *Graph
-	start    int
-	finish   []int
+	start    string
+	finish   []string
+}
+
+func (m *FSM) GetGraph() {
+	fmt.Println("Nodes:")
+	for _, node := range m.graph.Nodes {
+		fmt.Println(node.Name)
+	}
+	fmt.Println("Links:")
+	for _, link := range m.graph.Links {
+		fmt.Println(link.Source, link.Target, link.Value)
+	}
 }
