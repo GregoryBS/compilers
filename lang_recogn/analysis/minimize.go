@@ -48,11 +48,20 @@ func Minimize(dfsm *FSM) *FSM {
 		}
 	}
 	for _, link := range dfsm.graph.Links {
-		if Find(nodes, link.Source) < len(nodes) && Find(nodes, link.Target) < len(nodes) {
-			links = append(links, link)
+		var src, dst *Node
+		for _, group := range groups {
+			if src == nil && Find(group, link.Source) < len(group) {
+				src = group[0]
+			}
+			if dst == nil && Find(group, link.Target) < len(group) {
+				dst = group[0]
+			}
+		}
+		if src != nil && dst != nil {
+			links = append(links, &Link{Source: src.Name, Target: dst.Name, Value: link.Value})
 		}
 	}
-	result.graph = &Graph{Nodes: nodes, Links: links}
+	result.graph = &Graph{Nodes: nodes, Links: removeDuplicates(links)}
 	return result
 }
 
@@ -91,4 +100,16 @@ func splitFinish(groups [][]*Node, nodes []*Node, finish []string) {
 			groups[1] = append(groups[1], node)
 		}
 	}
+}
+
+func removeDuplicates(links []*Link) []*Link {
+	allKeys := make(map[Link]bool, 0)
+	list := make([]*Link, 0)
+	for _, item := range links {
+		if _, ok := allKeys[*item]; !ok {
+			allKeys[*item] = true
+			list = append(list, item)
+		}
+	}
+	return list
 }
