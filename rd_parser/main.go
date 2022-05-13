@@ -6,14 +6,20 @@ import (
 	"os"
 	"recursive_descent/parser"
 	"strings"
+
+	"github.com/goccy/go-graphviz"
+	"github.com/goccy/go-graphviz/cgraph"
 )
 
-func parseResult() {
+func parseResult(g *graphviz.Graphviz, graph *cgraph.Graph) {
 	fmt.Println()
 	if msg := recover(); msg != nil {
 		fmt.Println(msg)
 	} else {
 		fmt.Println("Parsing successful")
+		if err := g.RenderFilename(graph, graphviz.PNG, "graph.png"); err != nil {
+			fmt.Println("Cannot save graph in file", err)
+		}
 	}
 }
 
@@ -49,8 +55,21 @@ func main() {
 		data += buffer
 	}
 
-	p := &parser.Parser{Data: strings.Join(strings.Fields(data), ""), File: output}
-	defer parseResult()
+	g := graphviz.New()
+	defer g.Close()
+	graph, err := g.Graph()
+	if err != nil {
+		fmt.Println("cannot create graphviz graph", err)
+		return
+	}
+	defer graph.Close()
+
+	p := &parser.Parser{
+		Data:  strings.Join(strings.Fields(data), ""),
+		File:  output,
+		Graph: &parser.Graph{graph, []*cgraph.Node{}, []*cgraph.Edge{}},
+	}
+	defer parseResult(g, graph)
 	p.Block()
 	return
 }
